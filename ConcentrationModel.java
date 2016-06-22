@@ -32,8 +32,15 @@ public class ConcentrationModel extends Observable {
 
     // The object representing the back of a card.
     public static final CardBack SINGLETON_BACK = new CardBack();
+    
+    // total score
     private int score=0;
+    
+    // number of successive cards matched aka multiplier
     private int successive =0;
+    
+    // 
+    private int totalCardsMatched =0;
     /**
      * The undo stack for the game.
      */
@@ -135,13 +142,22 @@ public class ConcentrationModel extends Observable {
     private void checkMatch() {
 	if (undoStack.size() == 2 && undoStack.get(0).getNumber() == undoStack.get(1).getNumber()) {
 		score += 50;
-		//System.out.println("score is now " + score);
+		
 	    successive +=1;
-	    //System.out.println("successive is " + successive);
+	    totalCardsMatched +=2;
 	    calcMultiplyer();
 	    pop();
 	    pop();
+	    checkIfGameOver();
 	}
+    }
+    public boolean checkIfGameOver(){
+    	if(totalCardsMatched == NUM_CARDS ){
+    		//setChanged();
+    		//notifyObservers();
+    		return true;
+    	}
+    	return false;
     }
     public void calcMultiplyer(){
     	
@@ -173,28 +189,28 @@ public class ConcentrationModel extends Observable {
      *
      */
     public void selectCard(int n) {
-	if (0 <= n && n < NUM_CARDS) {
+    	if (0 <= n && n < NUM_CARDS) {
 		
-	    switch (undoStack.size()){
-	    case 2:
-		undo();
-		undo();
-		successive =0;
-	    case 0:
-		add(n);
-		break;
-	    case 1:
-		add(n);
-		checkMatch();
-		break;
-	    default:
-		throw new RuntimeException("Internal Error: undoStack too big.");
+    		switch (undoStack.size()){
+    		case 2:
+    			undo();
+    			undo();
+    			successive =0;
+    		case 0:
+    			add(n);
+    			break;
+    		case 1:
+    			add(n);
+    			checkMatch();
+    			break;
+    		default:
+    			throw new RuntimeException("Internal Error: undoStack too big.");
 	    }
-	    setChanged();
-	    notifyObservers();
-	} else {
+    		setChanged();
+    		notifyObservers();
+    	} else {
 
-	}
+    	}
     }
 
     /**
@@ -260,6 +276,7 @@ public class ConcentrationModel extends Observable {
 	this.moveCount = 0;
     this.score = 0;
     this.successive = 0;
+    this.totalCardsMatched = 0;
 	setChanged();
 	notifyObservers();
     }
@@ -274,6 +291,11 @@ public class ConcentrationModel extends Observable {
 	return undoStack.size();
     }
     
+    /**
+     * Return the current score in the game.
+     *
+     * @return An integer that represents the current score
+     */
     public int getScore(){
     	return score;
     }

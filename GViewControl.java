@@ -1,23 +1,12 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+import javax.swing.*;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
 
 /*
  * GViewControl.java 
@@ -33,6 +22,10 @@ import javax.swing.UIManager;
  *@author  Papa Yaw Ntorinkansah 
  */
 public class GViewControl extends JFrame implements Observer  {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5995371630914787806L;
 	public static final int guiSize = 500;
 	private JButton reset = new JButton ("Reset");
 	private JButton cheat = new JButton ("Cheat");
@@ -74,7 +67,7 @@ public class GViewControl extends JFrame implements Observer  {
 		panelTop = new JPanel(new BorderLayout());
 		panelChildLeft = new JPanel(new BorderLayout());
 		panelChildRight = new JPanel(new BorderLayout());
-		panelCenter = new JPanel(new GridLayout(m.BOARD_SIZE,m.BOARD_SIZE));
+		panelCenter = new JPanel(new GridLayout(ConcentrationModel.BOARD_SIZE,ConcentrationModel.BOARD_SIZE));
 		panelBottom = new JPanel(new FlowLayout(FlowLayout.TRAILING));
 		msgArea = new JLabel();
 		
@@ -100,7 +93,7 @@ public class GViewControl extends JFrame implements Observer  {
 		
 		ArrayList<CardFace>  cf = m.cheat();
 		cheatButtons = new ArrayList<CardButton>();				
-		for(int c=0;c<m.NUM_CARDS;c++){
+		for(int c=0;c<ConcentrationModel.NUM_CARDS;c++){
 			cButtons.add(new CardButton(c));
 			CardButton f = new CardButton(c);
 			f.setText(""+ cf.get(c).getNumber());
@@ -114,7 +107,7 @@ public class GViewControl extends JFrame implements Observer  {
 	}
 	public void createButtons(){
 		
-		for(int i=0;i<m.NUM_CARDS;i++){
+		for(int i=0;i<ConcentrationModel.NUM_CARDS;i++){
 			cButtons.get(i).setBackground(Color.WHITE);
 			//cButtons.get(i).setBorderPainted(false);
 			//cButtons.get(i).setContentAreaFilled(false);
@@ -169,7 +162,7 @@ public class GViewControl extends JFrame implements Observer  {
 				
 				//System.out.println(m.BOARD_SIZE);
 				//createCheatButtons();
-				CheatFrame c = new CheatFrame(cheatButtons,m.BOARD_SIZE);
+				CheatFrame c = new CheatFrame(cheatButtons,ConcentrationModel.BOARD_SIZE);
 					
 			}	
 				
@@ -188,17 +181,17 @@ public class GViewControl extends JFrame implements Observer  {
         
         add(panelTop,BorderLayout.NORTH);
 		add(panelCenter,BorderLayout.CENTER);
-		add(panelBottom,BorderLayout.SOUTH);
+		this.add(panelBottom,BorderLayout.SOUTH);
         setVisible(true);
         setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE); 
 	}
 	
 	@Override
 	public void update(Observable t, Object o) {
-		//System.out.println("I am Here");
+		
 		createCheatButtons();
 		ArrayList<CardFace>  c = m.getCards();
-		for(int y=0;y<m.NUM_CARDS;y++){
+		for(int y=0;y<ConcentrationModel.NUM_CARDS;y++){
 			if(c.get(y).isFaceUp() ){
 				
 				cButtons.get(y).setText(""+ c.get(y).getNumber());
@@ -230,6 +223,25 @@ public class GViewControl extends JFrame implements Observer  {
 				
 				repaint();
 				validate();
+			}
+			if(m.checkIfGameOver()){
+				URL url = null;
+				try {
+					 url = GViewControl.class.getResource("animation.gif");
+					 
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+					ImageIcon Icon = new ImageIcon(url);
+				
+					JOptionPane.showMessageDialog(this.getContentPane(),
+					    "You won in " + m.getMoveCount() + " moves \n "
+					    		+ "Your score is " + m.getScore(),
+					    "Congratulations!! You Won!!",
+					    JOptionPane.INFORMATION_MESSAGE,
+					    Icon);
+			     
+			     
 			}
 				
 			

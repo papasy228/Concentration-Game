@@ -194,6 +194,7 @@ public class GViewControl extends JFrame implements Observer  {
 		for(int y=0;y<ConcentrationModel.NUM_CARDS;y++){
 			if(c.get(y).isFaceUp() ){
 				
+				cButtons.get(y).setFont(new Font("Arial", Font.PLAIN, 16));
 				cButtons.get(y).setText(""+ c.get(y).getNumber());
 				cButtons.get(y).setBackground(colors[c.get(y).getNumber() %13]);
 				

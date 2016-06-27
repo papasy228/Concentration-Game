@@ -8,6 +8,7 @@
  *	$Log$
  */
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Observable;
@@ -34,7 +35,7 @@ public class ConcentrationModel extends Observable {
     public static final CardBack SINGLETON_BACK = new CardBack();
     
     // total score
-    private int score=0;
+    private BigInteger score = new BigInteger("0");
     
     // number of successive cards matched aka multiplier
     private int successive =0;
@@ -141,7 +142,7 @@ public class ConcentrationModel extends Observable {
      */    
     private void checkMatch() {
 	if (undoStack.size() == 2 && undoStack.get(0).getNumber() == undoStack.get(1).getNumber()) {
-		score += 50;
+		score = score.add(BigInteger.valueOf( 50)) ;
 		
 	    successive +=1;
 	    totalCardsMatched +=2;
@@ -162,21 +163,21 @@ public class ConcentrationModel extends Observable {
     public void calcMultiplyer(){
     	
     	switch(successive){
-    	case 2: score*= 4;break;
-    	case 3: score*= (9);break;
-    	case 4: score*= (16);break;
-    	case 5: score*= 25;break;
-    	case 6: score*= 36;break;
-    	case 7: score*= 49;break;
-    	case 8: score*= 64;break;
-    	case 9: score*= 72;break;
-    	case 10: score*= 100;break;
-    	case 11: score*= 121;break;
-    	case 12: score*= 144;break;
-    	case 13: score*= 169;break;
-    	case 14: score*= 196;break;
-    	case 15: score*= 225;break;
-    	case 16: score*= 256;break;
+    	case 2: score =score.multiply(BigInteger.valueOf( 4));break;
+    	case 3: score =score.multiply(BigInteger.valueOf(9));break;
+    	case 4: score =score.multiply(BigInteger.valueOf(16));break;
+    	case 5: score =score.multiply(BigInteger.valueOf( 25));break;
+    	case 6: score =score.multiply(BigInteger.valueOf( 36));break;
+    	case 7: score =score.multiply(BigInteger.valueOf( 49));break;
+    	case 8: score =score.multiply(BigInteger.valueOf( 64));break;
+    	case 9: score =score.multiply(BigInteger.valueOf( 72));break;
+    	case 10: score =score.multiply(BigInteger.valueOf( 100));break;
+    	case 11: score =score.multiply(BigInteger.valueOf( 121));break;
+    	case 12: score =score.multiply(BigInteger.valueOf( 144));break;
+    	case 13: score =score.multiply(BigInteger.valueOf( 169));break;
+    	case 14: score =score.multiply(BigInteger.valueOf( 196));break;
+    	case 15: score =score.multiply(BigInteger.valueOf( 225));break;
+    	case 16: score =score.multiply(BigInteger.valueOf( 256));break;
     	}
     	
     }
@@ -274,7 +275,7 @@ public class ConcentrationModel extends Observable {
 	this.undoStack = new ArrayList<Card>();
 
 	this.moveCount = 0;
-    this.score = 0;
+    this.score = BigInteger.valueOf(0);
     this.successive = 0;
     this.totalCardsMatched = 0;
 	setChanged();
@@ -296,7 +297,7 @@ public class ConcentrationModel extends Observable {
      *
      * @return An integer that represents the current score
      */
-    public int getScore(){
+    public BigInteger getScore(){
     	return score;
     }
 }

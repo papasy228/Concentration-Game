@@ -189,7 +189,7 @@ public class GViewControl extends JFrame implements Observer  {
 	@Override
 	public void update(Observable t, Object o) {
 		
-		createCheatButtons();
+		//createCheatButtons();
 		ArrayList<CardFace>  c = m.getCards();
 		for(int y=0;y<ConcentrationModel.NUM_CARDS;y++){
 			if(c.get(y).isFaceUp() ){
@@ -218,7 +218,7 @@ public class GViewControl extends JFrame implements Observer  {
 				case 2: str +=" No Match: Undo or select a card."; break;
 				}
 				msgArea.setText(str);
-				scoreMsgArea.setText(""+m.getScore());
+				scoreMsgArea.setText(""+m.getScore().toString());
 				
 				
 				repaint();
@@ -236,7 +236,7 @@ public class GViewControl extends JFrame implements Observer  {
 				
 					JOptionPane.showMessageDialog(this.getContentPane(),
 					    "You won in " + m.getMoveCount() + " moves \n "
-					    		+ "Your score is " + m.getScore(),
+					    + "Your score is " + m.getScore().toString(),
 					    "Congratulations!! You Won!!",
 					    JOptionPane.INFORMATION_MESSAGE,
 					    Icon);

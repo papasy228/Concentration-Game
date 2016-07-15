@@ -8,9 +8,23 @@
  *	$Log$
  */
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Observable;
 
 /**
@@ -36,8 +50,12 @@ public class ConcentrationModel extends Observable {
     
     // total score
     private BigInteger score = new BigInteger("0");
+    boolean online = false;
+    public static LinkedHashMap<String, BigInteger> scoreList = null;
     
-    // number of successive cards matched aka multiplier
+    /** 
+     * Number of successive cards matched aka multiplier
+     */
     private int successive =0;
     
     // 
@@ -64,16 +82,18 @@ public class ConcentrationModel extends Observable {
      * 
      */
     public ConcentrationModel() {
-	this.cards = new ArrayList<Card>();
+    	this.cards = new ArrayList<Card>();
 
-	for (int n = 0; n < NUM_PAIRS; ++n) {
-	    Card card1 = new Card(n);
-	    Card card2 = new Card(n);
-	    this.cards.add(card1);
-	    this.cards.add(card2);
-	}
-
-	reset();
+    	for (int n = 0; n < NUM_PAIRS; ++n) {
+    		Card card1 = new Card(n);
+    		Card card2 = new Card(n);
+    		this.cards.add(card1);
+    		this.cards.add(card2);
+    	}
+    	
+    	
+    	isOnline();
+    	reset();
     }
 
     /**
@@ -83,6 +103,99 @@ public class ConcentrationModel extends Observable {
      */
     private void push(Card card) {
 	undoStack.add(card);
+    }
+    private void isOnline(){
+    	
+    	try {
+			this.online = InetAddress.getByName("google.com").isReachable(null, 0, 300);
+		} catch (UnknownHostException e) {
+			online = false;
+			e.printStackTrace();
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}
+    }
+    public int checkIfHighScore(){
+    	if(online){
+    		final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+    		final String DB_URL = "jdbc:mysql://" + Env.DB_HOST + ":" + Env.DB_PORT + "/" +Env.DB_DATABASE;
+    		final String USER = Env.DB_USERNAME;
+    		final String PASS = Env.DB_PASSWORD;
+    		scoreList = new LinkedHashMap<String, BigInteger>();
+    		Connection conn = null;
+    		   Statement stmt = null;
+    		   try{
+    		     
+    		      Class.forName(JDBC_DRIVER);
+    			
+    		      System.out.println("Connecting to database...");
+    		      conn = DriverManager.getConnection(DB_URL,USER,PASS);
+
+    		      //STEP 4: Execute a query
+    		      System.out.println("Creating statement...");
+    		      stmt = conn.createStatement();
+    		      DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+    			  Date date = new Date();
+    			  String d = dateFormat.format(date);
+    		      String sql;
+    		      String q = 
+    		    "INSERT INTO Concentration.Highscores VALUES ( '" +d+ "'," + score + ")";
+    		      stmt.executeUpdate(q);
+    		      sql = "SELECT * FROM Concentration.Highscores ORDER BY Score DESC LIMIT 100;";
+    		      ResultSet rs = stmt.executeQuery(sql);
+
+    		      
+    		      while(rs.next()){
+    		         //Retrieve by column name
+    		         //int id  = rs.getInt("HighScoresID");
+    		         String username = rs.getString("UserName");
+    		         long score = rs.getLong("Score");
+    		         BigInteger s = BigInteger.valueOf(score);  
+    		         scoreList.put(username, s);
+    		         
+    		         	
+    		         
+    		      }
+    		      if(scoreList.containsKey(d)){
+    		    	  int i = 1;
+    		    	  	for(String key : scoreList.keySet()){
+    		    		  if(key == d){
+    		    			  return i;
+    		    		  }
+    		    	  	}
+    		      
+		       
+		         }else{
+   		    	  return 0;
+   		      	 }
+		         	
+    		      //STEP 6: Clean-up environment
+    		      rs.close();
+    		      stmt.close();
+    		      conn.close();
+    		   }catch(SQLException se){
+    		      //Handle errors for JDBC
+    		      se.printStackTrace();
+    		   }catch(Exception e){
+    		      //Handle errors for Class.forName
+    		      e.printStackTrace();
+    		   }finally{
+    		      //finally block used to close resources
+    		      try{
+    		         if(stmt!=null)
+    		            stmt.close();
+    		      }catch(SQLException se2){
+    		      }// nothing we can do
+    		      try{
+    		         if(conn!=null)
+    		            conn.close();
+    		      }catch(SQLException se){
+    		         se.printStackTrace();
+    		      }//end finally try
+    		   }//end try
+    	}
+		return 0;
     }
 
     /**
@@ -271,6 +384,7 @@ public class ConcentrationModel extends Observable {
 	}
 
 	Collections.shuffle(cards);
+	
 
 	this.undoStack = new ArrayList<Card>();
 
@@ -292,6 +406,9 @@ public class ConcentrationModel extends Observable {
 	return undoStack.size();
     }
     
+    public int isHighScore() {
+    	return undoStack.size();
+    }
     /**
      * Return the current score in the game.
      *

@@ -232,7 +232,7 @@ public class GViewControl extends JFrame implements Observer  {
 		if(m.checkIfGameOver()){
 			URL url = null;
 			try {
-				 url = GViewControl.class.getResource("animation.gif");
+				 url = GViewControl.class.getResource("resources/animation.gif");
 				 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -265,6 +265,7 @@ public class GViewControl extends JFrame implements Observer  {
 	public static void main(String[] args) {
 		
 		GViewControl game = new GViewControl(new ConcentrationModel());
+		
 		
 	}
 

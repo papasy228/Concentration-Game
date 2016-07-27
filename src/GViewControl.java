@@ -246,17 +246,27 @@ public class GViewControl extends JFrame implements Observer  {
 				    JOptionPane.INFORMATION_MESSAGE,
 				    Icon);
 		     //to do check high score
-				/*
+				
 				if(m.checkIfHighScore() !=0){
-					
-					JOptionPane.showInputDialog(this.getContentPane(),
-						    "You won in " + m.getMoveCount() + " moves \n "
-						    + "Your score is " + m.getScore().toString(),
-						    "Congratulations!! New High Score!!",
-						    JOptionPane.INFORMATION_MESSAGE,
-						    Icon);
+					JFrame HighScoreframe = new JFrame();
+					HighScoreframe.setSize(500,120);
+					JPanel HighScorepanel = new JPanel();
+					JTable table = new JTable(m.getRowData(), m.getColumnNames());
+					System.out.println("table heignt " +table.getRowHeight());
+					table.setFillsViewportHeight(true);
+					JScrollPane jsp = new JScrollPane(table);
+					HighScorepanel.setLayout(new BorderLayout());
+					HighScorepanel.add(jsp,BorderLayout.CENTER);
+					HighScoreframe.setContentPane(HighScorepanel);
+					HighScoreframe.setVisible(true);
+					//set pos
+					//high light
+					//set column
+					//make table uneditable
+				}else{
+					System.out.println("check if highscore returned? " );
 				}
-		     */
+		     
 		}
 		
 	}

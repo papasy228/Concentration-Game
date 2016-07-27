@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Observable;
+import java.util.Vector;
 
 /**
  * Class definition for the model of a concentration card game.
@@ -52,6 +53,9 @@ public class ConcentrationModel extends Observable {
     private BigInteger score = new BigInteger("0");
     boolean online = false;
     public static LinkedHashMap<String, BigInteger> scoreList = null;
+    
+    private Vector<Object> rowData = new Vector<Object> ();
+    private Vector <Object>  columnNames =new Vector <Object> ();
     
     /** 
      * Number of successive cards matched aka multiplier
@@ -105,9 +109,12 @@ public class ConcentrationModel extends Observable {
 	undoStack.add(card);
     }
     private void isOnline(){
-    	
+    		columnNames.addElement("Rank");
+    		columnNames.addElement("User Name");
+    		columnNames.addElement("Score");
     	try {
 			this.online = InetAddress.getByName("google.com").isReachable(null, 0, 300);
+			
 		} catch (UnknownHostException e) {
 			online = false;
 			e.printStackTrace();
@@ -115,6 +122,12 @@ public class ConcentrationModel extends Observable {
 			
 			e.printStackTrace();
 		}
+    }
+    public Vector <Object> getRowData(){
+    	return this.rowData;
+    }
+    public Vector <Object> getColumnNames(){
+    	return this.columnNames;
     }
     public int checkIfHighScore(){
     	if(online){
@@ -135,17 +148,21 @@ public class ConcentrationModel extends Observable {
     		      //STEP 4: Execute a query
     		      System.out.println("Creating statement...");
     		      stmt = conn.createStatement();
-    		      DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+    		      DateFormat dateFormat = new SimpleDateFormat("EddMMMyyyyhhmmss");
     			  Date date = new Date();
     			  String d = dateFormat.format(date);
     		      String sql;
     		      String q = 
-    		    "INSERT INTO Concentration.Highscores VALUES ( '" +d+ "'," + score + ")";
-    		      stmt.executeUpdate(q);
+    		    "INSERT INTO Concentration.Highscores (`UserName`, `Score`) VALUES ( '"+d+"'," + score + ")";
+    		      int rc = stmt.executeUpdate(q);
+    		      System.out.println("row count. Row count affected " + rc);
     		      sql = "SELECT * FROM Concentration.Highscores ORDER BY Score DESC LIMIT 100;";
     		      ResultSet rs = stmt.executeQuery(sql);
-
     		      
+    		      System.out.println( "Colmn Count is " + rs.getMetaData().getColumnCount());
+    		      
+    		      
+    		      int t=1;
     		      while(rs.next()){
     		         //Retrieve by column name
     		         //int id  = rs.getInt("HighScoresID");
@@ -153,18 +170,26 @@ public class ConcentrationModel extends Observable {
     		         long score = rs.getLong("Score");
     		         BigInteger s = BigInteger.valueOf(score);  
     		         scoreList.put(username, s);
-    		         
+    		         Vector<Object> temp = new Vector<Object>();
+    		         temp.add(t);
+    		         temp.add(username);
+    		         temp.add(s);
+    		         rowData.add(temp);
+    		         t++;
     		         	
     		         
     		      }
+    		      System.out.println("Row data size in vector is " +rowData.size());
     		      if(scoreList.containsKey(d)){
     		    	  int i = 1;
     		    	  	for(String key : scoreList.keySet()){
-    		    		  if(key == d){
+    		    	  		//System.out.println("Key is " + key + " Is it equal to " + d + " " + ((String)key == d) );
+    		    		  if(key.equalsIgnoreCase(d) ){
     		    			  return i;
     		    		  }
+    		    		  i++;
     		    	  	}
-    		      
+    		    	  	System.out.println("User HighScore is Rnk " + i);
 		       
 		         }else{
    		    	  return 0;

@@ -56,6 +56,9 @@ public class GViewControl extends JFrame implements Observer  {
 		Color.BLACK
 };
 	Color ogColor = UIManager.getColor("Button.background");		
+	CheatFrame cheatf ;
+	JFrame HighScoreframe;
+	JButton newGame = new JButton("New Game") ; 
 	
 	private ConcentrationModel m;
 
@@ -83,10 +86,42 @@ public class GViewControl extends JFrame implements Observer  {
         int y = (int) ((dimension.getHeight() - 500) / 2);
         setLocation(x, y);
         setSize(guiSize-100,guiSize);
+        
+       if ( m.online){
+    	   String uname = JOptionPane.showInputDialog(
+    		        null, 
+    		        "Please enter a user name", 
+    		        "Concentration", 
+    		        JOptionPane.QUESTION_MESSAGE
+    		    );
+    	   int s = validateUsrInput(uname);
+    	   while(s == 0){
+    		   uname = JOptionPane.showInputDialog(
+          		        null, 
+          		        "User name cannot be blank!! Please enter a user name", 
+          		        "Concentration", 
+          		        JOptionPane.QUESTION_MESSAGE
+          		    );
+    		   s = validateUsrInput(uname);
+    	   }
+    	   System.out.println("uname is "+ uname);
+    	   m.setUsername(uname);
+    	   if(uname == null) System.exit(0);
+    	   
+       }else{
+    	   System.out.println("Game is in offline mode ");
+       }
 		
 		createCheatButtons();
 		build();
 		
+		
+	}
+	private int validateUsrInput(String str){
+		if(str.isEmpty()){
+			return 0;
+		}
+		return 1;
 		
 	}
 	public void createCheatButtons(){
@@ -108,6 +143,7 @@ public class GViewControl extends JFrame implements Observer  {
 	public void createButtons(){
 		
 		for(int i=0;i<ConcentrationModel.NUM_CARDS;i++){
+			cButtons.get(i).setEnabled(true);
 			cButtons.get(i).setBackground(Color.WHITE);
 			//cButtons.get(i).setBorderPainted(false);
 			//cButtons.get(i).setContentAreaFilled(false);
@@ -129,7 +165,39 @@ public class GViewControl extends JFrame implements Observer  {
 	}
 	public void build(){
 		
-        
+		panelBottom.removeAll();
+		msgArea.removeAll();
+		panelChildLeft.removeAll();
+		panelChildRight.removeAll();
+		panelTop.removeAll();
+		panelCenter.removeAll();
+		panelCenter.setEnabled(true);
+		for(int i=0;i<ConcentrationModel.NUM_CARDS;i++){
+			for (ActionListener al : cButtons.get(i).getActionListeners() ){
+				cButtons.get(i).removeActionListener(al);
+				System.out.println("hopefully removed " + cButtons.get(i).getText() + " Action Listern" );
+			}
+			
+		}
+		for (ActionListener al : reset.getActionListeners()){
+			System.out.println("hopefully removed [reset] " + al.toString());
+			reset.removeActionListener(al);
+			
+		}
+		for (ActionListener al : undo.getActionListeners()){
+			System.out.println("hopefully removed [undo] " + al.toString());
+			undo.removeActionListener(al);
+		}
+		for (ActionListener al : cheat.getActionListeners()){
+			System.out.println("hopefully removed [cheat] " + al.toString());
+			cheat.removeActionListener(al);
+		}
+		for (ActionListener al : newGame.getActionListeners()){
+			System.out.println("hopefully removed [newGame] " + al.toString());
+			newGame.removeActionListener(al);
+		}
+		
+		
         msgArea.setText("Moves: 0 Select the first card.");
         panelChildLeft.add(msgArea);
         panelChildRight.add(score, BorderLayout.LINE_START);
@@ -139,7 +207,7 @@ public class GViewControl extends JFrame implements Observer  {
         createButtons();
         
         
-        getContentPane();
+        //getContentPane();
         
         panelBottom.add(undo);
         undo.addActionListener(new ActionListener(){
@@ -160,10 +228,18 @@ public class GViewControl extends JFrame implements Observer  {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				//System.out.println(m.BOARD_SIZE);
-				//createCheatButtons();
-				CheatFrame c = new CheatFrame(cheatButtons,ConcentrationModel.BOARD_SIZE);
-					
+				
+				
+				if(cheatf == null ){
+					createCheatButtons();
+					cheatf = new CheatFrame(cheatButtons,ConcentrationModel.BOARD_SIZE);
+				}else if(cheatf != null && !cheatf.isShowing() ){
+					createCheatButtons();
+					//System.out.println("second condition");
+					cheatf = new CheatFrame(cheatButtons,ConcentrationModel.BOARD_SIZE);
+				}
+				
+				
 			}	
 				
         });
@@ -174,6 +250,8 @@ public class GViewControl extends JFrame implements Observer  {
 			public void actionPerformed(ActionEvent e) {
 				
 				m.reset();
+				if(HighScoreframe != null && HighScoreframe.isShowing()) HighScoreframe.dispose() ;
+				if(cheatf != null && cheatf.isShowing()) cheatf.dispose() ;
 				
 			}
         	
@@ -188,6 +266,8 @@ public class GViewControl extends JFrame implements Observer  {
 	
 	@Override
 	public void update(Observable t, Object o) {
+		
+		
 		
 		//createCheatButtons();
 		ArrayList<CardFace>  c = m.getCards();
@@ -230,6 +310,9 @@ public class GViewControl extends JFrame implements Observer  {
 			
 		}
 		if(m.checkIfGameOver()){
+			for(int i=0;i<ConcentrationModel.NUM_CARDS;i++){
+				cButtons.get(i).setEnabled(false);
+			}
 			URL url = null;
 			try {
 				 url = GViewControl.class.getResource("resources/animation.gif");
@@ -238,34 +321,77 @@ public class GViewControl extends JFrame implements Observer  {
 				e.printStackTrace();
 			}
 				ImageIcon Icon = new ImageIcon(url);
-			
+				int rank = m.checkIfHighScore();
+				String str = "";
+				if(rank > 0) str = "You cracked our leaderboard! you are number " + rank;
 				JOptionPane.showMessageDialog(this.getContentPane(),
-				    "You won in " + m.getMoveCount() + " moves \n "
-				    + "Your score is " + m.getScore().toString(),
+				    "You won in " + m.getMoveCount() + " moves \n"
+				    +"Your score is " + m.getScore().toString() + "\n"
+				    + str,
 				    "Congratulations!! You Won!!",
 				    JOptionPane.INFORMATION_MESSAGE,
 				    Icon);
-		     //to do check high score
+		     
 				
-				if(m.checkIfHighScore() !=0){
-					JFrame HighScoreframe = new JFrame();
-					HighScoreframe.setSize(500,120);
+				if( rank !=0){
+					HighScoreframe = new JFrame();
+					HighScoreframe.setSize(400,300);
+					HighScoreframe.setLocation(this.getX() - 500, this.getY());
 					JPanel HighScorepanel = new JPanel();
 					JTable table = new JTable(m.getRowData(), m.getColumnNames());
+					table.setEnabled(false);
 					System.out.println("table heignt " +table.getRowHeight());
 					table.setFillsViewportHeight(true);
 					JScrollPane jsp = new JScrollPane(table);
 					HighScorepanel.setLayout(new BorderLayout());
 					HighScorepanel.add(jsp,BorderLayout.CENTER);
 					HighScoreframe.setContentPane(HighScorepanel);
+					HighScoreframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 					HighScoreframe.setVisible(true);
-					//set pos
-					//high light
-					//set column
-					//make table uneditable
+					HighScoreframe.toFront();
+					
+					
+					
+					panelBottom.removeAll();
+					panelBottom.add(newGame);
+					newGame.addActionListener(new ActionListener(){
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							
+							m.newGame();
+							if(HighScoreframe != null && HighScoreframe.isShowing()) HighScoreframe.dispose() ;
+							if(cheatf != null && cheatf.isShowing()) cheatf.dispose() ;
+							build();
+							
+						}
+			        	
+			        });
+					this.repaint();
+					this.validate();
+					this.setVisible(true);
 				}else{
-					System.out.println("check if highscore returned? " );
+					System.out.println("user did not make it onto leader board " );
+					
+					
+					panelBottom.removeAll();
+					panelBottom.add(newGame);
+					newGame.addActionListener(new ActionListener(){
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							
+							m.newGame();
+							if(cheatf != null && cheatf.isShowing()) cheatf.dispose() ;
+							build();
+							
+						}
+			        	
+			        });
+					
 				}
+				repaint();
+				validate();
 		     
 		}
 		

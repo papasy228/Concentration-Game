@@ -30,7 +30,7 @@ public class CheatFrame extends JFrame {
 		this.cardButtons = cardButtons;
 		this.size = size;
 		getContentPane().setLayout(new BorderLayout());
-		setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation (JFrame.DISPOSE_ON_CLOSE);
 		this.setSize(300, 400);
 		setTitle("Cheat Concentration Game");
 		

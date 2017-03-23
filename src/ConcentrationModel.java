@@ -52,6 +52,7 @@ public class ConcentrationModel extends Observable {
     // total score
     private BigInteger score = new BigInteger("0");
     boolean online = false;
+    private String username;
     public static LinkedHashMap<String, BigInteger> scoreList = null;
     
     private Vector<Object> rowData = new Vector<Object> ();
@@ -129,6 +130,13 @@ public class ConcentrationModel extends Observable {
     public Vector <Object> getColumnNames(){
     	return this.columnNames;
     }
+    public String getUsername(){
+		return this.username;
+    	
+    }
+    public void setUsername(String s){
+    	this.username = s;
+    }
     public int checkIfHighScore(){
     	if(online){
     		final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
@@ -148,15 +156,15 @@ public class ConcentrationModel extends Observable {
     		      //STEP 4: Execute a query
     		      System.out.println("Creating statement...");
     		      stmt = conn.createStatement();
-    		      DateFormat dateFormat = new SimpleDateFormat("EddMMMyyyyhhmmss");
-    			  Date date = new Date();
-    			  String d = dateFormat.format(date);
+    		      //DateFormat dateFormat = new SimpleDateFormat("EddMMMyyyyhhmmss");
+    			  //Date date = new Date();
+    			  //String d = dateFormat.format(date);
     		      String sql;
     		      String q = 
-    		    "INSERT INTO Concentration.Highscores (`UserName`, `Score`) VALUES ( '"+d+"'," + score + ")";
+    		    "INSERT INTO Concentration.highscores (`name`, `score`) VALUES ( '"+username+"'," + score + ")";
     		      int rc = stmt.executeUpdate(q);
     		      System.out.println("row count. Row count affected " + rc);
-    		      sql = "SELECT * FROM Concentration.Highscores ORDER BY Score DESC LIMIT 100;";
+    		      sql = "SELECT * FROM Concentration.highscores ORDER BY Score DESC LIMIT 15;";
     		      ResultSet rs = stmt.executeQuery(sql);
     		      
     		      System.out.println( "Colmn Count is " + rs.getMetaData().getColumnCount());
@@ -166,8 +174,8 @@ public class ConcentrationModel extends Observable {
     		      while(rs.next()){
     		         //Retrieve by column name
     		         //int id  = rs.getInt("HighScoresID");
-    		         String username = rs.getString("UserName");
-    		         long score = rs.getLong("Score");
+    		         String username = rs.getString("name");
+    		         long score = rs.getLong("score");
     		         BigInteger s = BigInteger.valueOf(score);  
     		         scoreList.put(username, s);
     		         Vector<Object> temp = new Vector<Object>();
@@ -180,11 +188,11 @@ public class ConcentrationModel extends Observable {
     		         
     		      }
     		      System.out.println("Row data size in vector is " +rowData.size());
-    		      if(scoreList.containsKey(d)){
+    		      if(scoreList.containsKey(username)){
     		    	  int i = 1;
     		    	  	for(String key : scoreList.keySet()){
     		    	  		//System.out.println("Key is " + key + " Is it equal to " + d + " " + ((String)key == d) );
-    		    		  if(key.equalsIgnoreCase(d) ){
+    		    		  if(key.equalsIgnoreCase(username) ){
     		    			  return i;
     		    		  }
     		    		  i++;
@@ -359,7 +367,7 @@ public class ConcentrationModel extends Observable {
      */    
     public ArrayList<CardFace> getCards() {
 	ArrayList<CardFace> faces = new ArrayList<CardFace>();
-
+	
 	for (Card card : cards) {
 	    if (card.isFaceUp()) {
 		faces.add(card);
@@ -419,6 +427,29 @@ public class ConcentrationModel extends Observable {
     this.totalCardsMatched = 0;
 	setChanged();
 	notifyObservers();
+    }
+    
+    public void newGame() {
+    	for (Card card : cards) {
+    	    if (card.isFaceUp()) {
+    		card.toggleFace();
+    	    }
+    	}
+
+    	Collections.shuffle(cards);
+    	
+
+    	this.undoStack = new ArrayList<Card>();
+
+    	this.moveCount = 0;
+        this.score = BigInteger.valueOf(0);
+        this.successive = 0;
+        this.totalCardsMatched = 0;
+        scoreList = null;
+        
+        rowData = new Vector<Object> ();
+    	setChanged();
+    	notifyObservers();
     }
 
     /**
